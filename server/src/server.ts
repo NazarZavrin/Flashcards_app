@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import { errorHandler } from './middlewares/errorHandler';
 dotenv.config();
 
 const app = express();
@@ -25,6 +26,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
     res.send("Server endpoint");
 })
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server has been started on port: ${PORT}`);
