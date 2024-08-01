@@ -11,7 +11,9 @@ export default class Validator {
     private static readonly emailRegex = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$/;
     static validateEmail(email: string, beginning = "Email ") {
         let warningText = "";
-        if (email.length > 50) {
+        if (email.length < 5) {
+            warningText = beginning + "must not be shorter than 5 characters.";
+        } else if (email.length > 50) {
             warningText = beginning + "must not be longer than 50 characters.";
         } else if (!email.match(this.emailRegex)) {
             warningText = `Incorrect ${beginning.toLocaleLowerCase().trim()} format.`;

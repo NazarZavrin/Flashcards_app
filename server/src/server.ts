@@ -1,9 +1,17 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import appRouter from './routers/appRouter';
 import { errorHandler } from './middlewares/errorHandler';
-dotenv.config();
+
+const result = dotenv.config({ path: path.join(path.resolve(), 'server', 'src', 'config', '.env') });
+if (result.error) {
+    throw result.error;
+} else {
+    console.log("Environment variables are parsed.");
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,9 +34,11 @@ app.use(express.json());
 app.get("/", (req, res) => {
     res.send("Server endpoint");
 })
-
+app.use(appRouter);
 app.use(errorHandler);
+import { tokenService } from './utils/TokenService';
 
 app.listen(PORT, () => {
+    tokenService.generateTokens({})
     console.log(`Server has been started on port: ${PORT}`);
 });

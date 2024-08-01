@@ -1,8 +1,8 @@
 import { CustomError } from "./CustomError";
 import { statusCodes } from "../utils/statusCodes";
 
-export class AuthorizationError extends CustomError {
-    public readonly statusCode: statusCodes = 401;
+export default class BadRequestError extends CustomError {
+    public readonly statusCode: statusCodes = 400;
     constructor(message?: string);
     constructor(errorObject: { message?: string, logging?: boolean });
     constructor(errorInfo?: string | { message?: string, logging?: boolean }) {
