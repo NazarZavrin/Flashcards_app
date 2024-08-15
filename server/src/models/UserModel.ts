@@ -6,8 +6,6 @@ export interface IUser {
     name: string,
     email: string;
     password: string;
-    accessTokens?: [string];
-    refreshTokens?: [string];
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -16,7 +14,9 @@ const userSchema = new mongoose.Schema<IUser>({
         required: true,
         minlength: [3, 'Name must not be shorter than 3 characters'],
         maxlength: [50, 'Name must not be longer than 50 characters']
-    },email: {
+    },
+    email: {
+        type: String,
         match: [emailRegex, 'Incorrect format of the email'],
         required: true,
         minlength: [5, 'Email must not be shorter than 5 characters'],
@@ -28,17 +28,15 @@ const userSchema = new mongoose.Schema<IUser>({
         minlength: [60, 'Hashed password must not be shorter than 60 characters'],
         maxlength: [60, 'Hashed password must not be longer than 60 characters'],
         select: false
-    },
-    accessTokens: [String],
-    refreshTokens: [String]
-})
+    }
+}, { versionKey: false, timestamps: true })
 export const User = mongoose.model<IUser>('User', userSchema);
 
-// required: true, ref, id: false, versionKey: false , timestamps: true (for User)
-let Bob = new User({
+// required: true, ref, select: false | id: false, versionKey: false, timestamps: true (for User)
+let Bob = new User<IUser>({
     name: "Hi",
     email: "bob@e[xample.com",
-    password: "joio"
+    password: "something"
 });
 try {
     Bob.validateSync();
@@ -49,4 +47,3 @@ try {
         }
     }
 }
-

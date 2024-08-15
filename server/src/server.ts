@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import appRouter from './routers/appRouter';
 import { errorHandler } from './middlewares/errorHandler';
+import { connectToMongoDB } from './utils/connect-to-MongoDB';
 
 const result = dotenv.config({ path: path.join(path.resolve(), 'server', 'src', 'config', '.env') });
 if (result.error) {
@@ -17,6 +18,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 var whitelist = [process.env.FRONT_END_URL];
 let corsOptions: cors.CorsOptions = {
+    credentials: true,
     origin: function (origin, callback) {
         if (whitelist.indexOf(origin) !== -1 || !process.env.FRONT_END_URL) {
             callback(null, true);
@@ -36,9 +38,14 @@ app.get("/", (req, res) => {
 })
 app.use(appRouter);
 app.use(errorHandler);
-import { tokenService } from './utils/TokenService';
 
-app.listen(PORT, () => {
-    tokenService.generateTokens({})
-    console.log(`Server has been started on port: ${PORT}`);
-});
+async function start() {
+    const connectionResult = await connectToMongoDB();
+    console.log(connectionResult);
+    if (connectionResult.includes("Success")) {
+        app.listen(PORT, () => {
+            console.log(`Server has been started on port ${PORT}...`);
+        });
+    }
+}
+start();
