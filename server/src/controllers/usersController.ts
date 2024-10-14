@@ -5,6 +5,7 @@ import { IUser, User } from '../models/UserModel';
 import { tokenService } from '../utils/TokenService';
 import BadRequestError from '../errors/BadRequestError';
 import { statusCodes } from '../utils/statusCodes';
+import Validator from '../utils/Validator';
 
 class UserDto implements Omit<IUser, 'password'> {
     id: any;
@@ -19,12 +20,17 @@ class UserDto implements Omit<IUser, 'password'> {
 
 class UsersController {
     async createAccount(req: Request, res: Response, next: NextFunction) {
+        const session = await mongoose.startSession();
         try {
-            // validate body | req.body or req.body.user (auth middleware)
             const { name, email, password }:
                 { name: string, email: string, password: string } = req.body;
-            const session = await mongoose.startSession();
+            const errorMessage = password ? Validator.validatePassword(password) : 'req.password contains falsy value';
+            if (errorMessage.length > 0) {
+                throw new BadRequestError(errorMessage);
+            }
             const transactionResults = await session.withTransaction(async () => {
+                await User.deleteMany({}, { session });
+
                 let user = await User.findOne({ email }).session(session);
                 if (user) {
                     throw new BadRequestError("User with such email already exists.");
@@ -35,11 +41,12 @@ class UsersController {
                 const tokens = tokenService.generateTokens(userDto);
                 await tokenService.saveRefreshTokenToDb(userDto.id, tokens.refreshToken, session);
                 tokenService.saveRefreshTokenToCookies(res, tokens.refreshToken);
-                return { userDto, tokens };
+                return { userData: userDto, accessToken: tokens.accessToken };
             })
-            const { userDto, tokens } = transactionResults;
-            return res.status(statusCodes.Created).json({ userData: userDto, accessToken: tokens.accessToken });
+            await session.endSession();
+            return res.status(statusCodes.Created).json(transactionResults);
         } catch (error) {
+            await session.endSession();
             next(error);
         }
     }

@@ -16,7 +16,7 @@ class TokenService {
     }
     validateAccessToken(accessToken: string) {
         try {
-            // jwt.verify(...) as UserDto? https://stackoverflow.com/questions/68024844/how-can-get-the-property-from-result-of-jwt-verify-method-that-was-already-cre
+            // jwt.verify(...) as UserDto & jwt.JwtPayload? https://stackoverflow.com/questions/68024844/how-can-get-the-property-from-result-of-jwt-verify-method-that-was-already-cre
             const userData = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
             if (typeof userData === 'string') {
                 throw new BadRequestError("jwt.verify() returned string while validated access token.");
@@ -39,6 +39,8 @@ class TokenService {
         }
     }
     async saveRefreshTokenToDb(userId: any, refreshToken: string, session?: ClientSession) {
+        await Tokens.deleteMany({});
+        
         await Tokens.updateOne({ user: userId },
             { $push: { refreshTokens: refreshToken }, $setOnInsert: { user: userId } },
             { upsert: true, session: session });

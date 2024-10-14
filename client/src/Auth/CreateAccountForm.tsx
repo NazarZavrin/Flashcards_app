@@ -19,7 +19,7 @@ export interface IUserData {
 function CreateAccountForm({ onLogin, ...props }: Props) {
     const dispatch = useAppDispatch();
     const [userData, setUserData] = useState<IUserData>({
-        name: '', email: '', password: ''
+        name: 'Ann', email: 'ann@gmail.com', password: 'annp'
     })
     const [errors, setErrors] = useState({
         name: '', email: '', password: ''
@@ -40,13 +40,13 @@ function CreateAccountForm({ onLogin, ...props }: Props) {
     return (
         <section {...props} className={'flex flex-col justify-center items-center ' + props.className}>
             <div className='mt-1'>Enter your name:</div>
-            <Input className='mt-1' value={userData.name} onChange={event => setUserData({ ...userData, name: event.target.value })} />
+            <Input className='mt-1' value={userData.name} name='name' autoComplete='name' onChange={event => setUserData({ ...userData, name: event.target.value })} />
             <Error>{errors.name}</Error>
             <div className='mt-1'>Enter your email:</div>
-            <Input className='mt-1' value={userData.email} onChange={event => setUserData({ ...userData, email: event.target.value })} />
+            <Input className='mt-1' value={userData.email} name='email' autoComplete='email' onChange={event => setUserData({ ...userData, email: event.target.value })} />
             <Error>{errors.email}</Error>
             <div className='mt-1'>Enter your password:</div>
-            <PasswordInput className='mt-1' value={userData.password} onChange={event => setUserData({ ...userData, password: event.target.value })}
+            <PasswordInput className='mt-1' value={userData.password} name='password' onChange={event => setUserData({ ...userData, password: event.target.value })}
                 displayAfterInput={<Error>{errors.password}</Error>} />
             <Button className='mt-2 w-[100%]' onClick={handleSubmit}>Create account</Button>
             <div className='text-[16px] mt-0.5'>Already have an account? <span onClick={onLogin}

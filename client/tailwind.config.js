@@ -6,9 +6,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        lime: 'lime',
-        //limegreen: 'limegreen',
-        //forestgreen: 'forestgreen'
+        // red: 'red,
+        // lime: 'lime',
+        limegreen: 'limegreen',
+        // forestgreen: 'forestgreen'
       }
     },
   },

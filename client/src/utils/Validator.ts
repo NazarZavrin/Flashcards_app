@@ -27,7 +27,7 @@ export default class Validator {
         } else if (password.length > 20) {
             warningText = beginning + "must not be longer than 20 characters.";
         } else if (password.search(/\s/) >= 0) {
-            warningText = "must not contain spaces.";
+            warningText = beginning + "must not contain spaces.";
         }
         return warningText;
     }

@@ -33,17 +33,3 @@ const userSchema = new mongoose.Schema<IUser>({
 export const User = mongoose.model<IUser>('User', userSchema);
 
 // required: true, ref, select: false | id: false, versionKey: false, timestamps: true (for User)
-let Bob = new User<IUser>({
-    name: "Hi",
-    email: "bob@e[xample.com",
-    password: "something"
-});
-try {
-    Bob.validateSync();
-} catch (error) {
-    if (error instanceof mongoose.Error.ValidationError) {
-        for (const field in error.errors) {
-            console.log(field + ":", error.errors[field].message);
-        }
-    }
-}
