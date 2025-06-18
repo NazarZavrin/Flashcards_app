@@ -5,15 +5,11 @@ import PasswordInput from '../components/PasswordInput';
 import Error from '../components/Error';
 import Button from '../components/Button';
 import Validator from '../utils/Validator';
-import { createAccount } from './userSlice';
+import { IUserData, createAccount } from './userSlice';
+import { showMessage } from '../App/appSlice';
 
 interface Props extends ComponentProps<'section'> {
     onLogin: React.MouseEventHandler<HTMLSpanElement>;
-}
-export interface IUserData {
-    name: string;
-    email: string;
-    password: string;
 }
 
 function CreateAccountForm({ onLogin, ...props }: Props) {
@@ -31,11 +27,27 @@ function CreateAccountForm({ onLogin, ...props }: Props) {
         // console.log(errors);
         setErrors({ ...errors });
         if (Object.values(errors).some(value => value.length > 0)) {
-            console.log('fail');
+            // dispatch(showMessage({ type: 'warning', text: 'Failed to create account' }));
             return;
         }
-        await dispatch(createAccount(userData));
-        console.log('success');
+        const dispatchResult = await dispatch(createAccount(userData));
+        if (createAccount.rejected.match(dispatchResult)) { // if createAccount action was rejected
+            dispatch(showMessage({ type: "error", text: 'Application error' }));
+            console.error('createAccount.rejected');
+            console.error(dispatchResult.error);
+        } else if (dispatchResult.payload.ok === false) {
+            // console.log(dispatchResult.payload);
+            const errorMessage = dispatchResult.payload.result.message;
+            if (errorMessage.includes('email already exists')) {
+                dispatch(showMessage({ type: "error", text: errorMessage }));
+            } else {
+                dispatch(showMessage({ type: "error", text: 'Server error' }));
+                console.error('serverResponse.ok is false');
+                console.error(errorMessage);
+            }
+        } else {
+            dispatch(showMessage({ text: 'Account created' }));
+        }
     }
     return (
         <section {...props} className={'flex flex-col justify-center items-center ' + props.className}>

@@ -11,10 +11,10 @@ function AuthForm(props: ComponentProps<"section">) {
     return (
         <section {...props} className={styles.authForm + ' ' + props.className}>
             <Tabs>
-                <Tab active={activeTab === "log-in"}
+                <Tab active={activeTab !== "create-account"}
                     onClick={switchTab}
                 >Log in</Tab>
-                <Tab active={activeTab !== "log-in"}
+                <Tab active={activeTab === "create-account"}
                     onClick={switchTab}
                 >Create account</Tab>
             </Tabs>

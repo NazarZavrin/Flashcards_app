@@ -9,7 +9,7 @@
     "client": "npm run start --prefix client",
     "build:client": "npm run build --prefix client",
     "build:server": "tsc",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
     "test": ""
   },
   "keywords": [],

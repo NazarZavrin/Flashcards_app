@@ -1,6 +1,6 @@
 import React, { ComponentProps, useState } from 'react';
 import { useAppDispatch } from '../store';
-import { IUserData } from './CreateAccountForm';
+import { logIn, UserDataForLogin } from './userSlice';
 import Input from '../components/Input';
 import PasswordInput from '../components/PasswordInput';
 import Error from '../components/Error';
@@ -11,7 +11,6 @@ import { showMessage } from '../App/appSlice'
 interface Props extends ComponentProps<'section'> {
     onCreateAccount: React.MouseEventHandler<HTMLSpanElement>;
 }
-type UserDataForLogin = Pick<IUserData, 'email' | 'password'>
 
 function LoginForm({ onCreateAccount, ...props }: Props) {
     const dispatch = useAppDispatch();
@@ -22,18 +21,15 @@ function LoginForm({ onCreateAccount, ...props }: Props) {
         email: '', password: ''
     })
     async function handleSubmit() {
-        // dispatch(setMessage(userDataForLogin.password))
-        let message = userDataForLogin.password || 'Email is not correct';
-        dispatch(showMessage({ text: message }));
         errors.email = Validator.validateEmail(userDataForLogin.email);
         errors.password = userDataForLogin.password.length <= 0 ? 'Enter password.' : '';
-        console.log(errors);
         setErrors({ ...errors });
         if (Object.values(errors).some(value => value.length > 0)) {
-            console.log('fail');
+            // dispatch(showMessage({ type: 'warning', text: 'Failed to log in' }));
             return;
         }
-        console.log('success');
+        await dispatch(logIn(userDataForLogin));
+        dispatch(showMessage({ text: 'Login successful' }));
     }
     return (
         <section {...props} className={'flex flex-col justify-center items-center ' + props.className}>

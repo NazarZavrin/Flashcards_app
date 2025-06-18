@@ -29,7 +29,7 @@ class UsersController {
                 throw new BadRequestError(errorMessage);
             }
             const transactionResults = await session.withTransaction(async () => {
-                await User.deleteMany({}, { session });
+                // await User.deleteMany({}, { session });
 
                 let user = await User.findOne({ email }).session(session);
                 if (user) {

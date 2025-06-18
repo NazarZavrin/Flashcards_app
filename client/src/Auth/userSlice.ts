@@ -1,6 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { IUserData } from "./CreateAccountForm"
 import { serverRequest } from "../utils/serverRequest";
+
+export interface IUserData {
+    name: string;
+    email: string;
+    password: string;
+}
+export type UserDataForLogin = Pick<IUserData, 'email' | 'password'>
 
 type UserDataToStore = Partial<Pick<IUserData, 'name' | 'email'>> & {
     isLoading: boolean;
@@ -25,18 +31,12 @@ const userSlice = createSlice({
                     state.name = result.name;
                     state.email = result.email;
                     localStorage.setItem('accessToken', result.accessToken);
-                    alert('Account has been created');
-                } else {
-                    const message: string = result.message;
-                    if (message.includes('email already exists')) {
-                        alert(message);
-                    } else {
-                        console.error(message);
-                        alert('Server error.');
-                    }
                 }
                 state.isLoading = false;
-            })
+            }).addCase(createAccount.rejected, (state, action) => {
+                state.isLoading = false;
+                console.info("addCase createAccount.rejected");
+            });
     },
 })
 
@@ -46,6 +46,17 @@ export const createAccount = createAsyncThunk(
         const response = await serverRequest('/users/create-account', {
             method: 'POST',
             body: JSON.stringify(userData),
+        })
+        // throw new Error('rejection test');
+        return response;
+    }
+)
+export const logIn = createAsyncThunk(
+    'user/logIn',
+    async (userDataForLogin: UserDataForLogin) => {
+        const response = await serverRequest('/users/login', {
+            method: 'PROPFIND',
+            body: JSON.stringify(userDataForLogin),
         })
         return response;
     }
