@@ -12,6 +12,8 @@ type UserDataToStore = Partial<Pick<IUserData, 'name' | 'email'>> & {
     isLoading: boolean;
 }
 const initialState: UserDataToStore = {
+    name: undefined,
+    email: undefined,
     isLoading: false,
 };
 
@@ -35,7 +37,19 @@ const userSlice = createSlice({
                 state.isLoading = false;
             }).addCase(createAccount.rejected, (state, action) => {
                 state.isLoading = false;
-                console.info("addCase createAccount.rejected");
+            }).addCase(logIn.pending, (state, action) => {
+                state.isLoading = true;
+            }).addCase(logIn.fulfilled, (state, action) => {
+                const response = action.payload;
+                const result = response.result;
+                if (response.ok) {
+                    state.name = result.name;
+                    state.email = result.email;
+                    localStorage.setItem('accessToken', result.accessToken);
+                }
+                state.isLoading = false;
+            }).addCase(logIn.rejected, (state, action) => {
+                state.isLoading = false;
             });
     },
 })

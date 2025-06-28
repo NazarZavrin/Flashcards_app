@@ -5,20 +5,20 @@ import Tab from '../components/Tab';
 import LoginForm from './LoginForm';
 import CreateAccountForm from './CreateAccountForm';
 
-function AuthForm(props: ComponentProps<"section">) {
-    const [activeTab, setActiveTab] = useState<"log-in" | "create-account">("log-in");
-    const switchTab = () => setActiveTab(activeTab === "log-in" ? "create-account" : "log-in");
+function AuthForm(props: ComponentProps<'section'>) {
+    const [activeTab, setActiveTab] = useState<'log-in' | 'create-account'>('log-in');
+    const switchTab = () => setActiveTab(activeTab === 'log-in' ? 'create-account' : 'log-in');
     return (
         <section {...props} className={styles.authForm + ' ' + props.className}>
             <Tabs>
-                <Tab active={activeTab !== "create-account"}
+                <Tab active={activeTab !== 'create-account'}
                     onClick={switchTab}
                 >Log in</Tab>
-                <Tab active={activeTab === "create-account"}
+                <Tab active={activeTab === 'create-account'}
                     onClick={switchTab}
                 >Create account</Tab>
             </Tabs>
-            {activeTab === "create-account" ?
+            {activeTab === 'create-account' ?
                 <CreateAccountForm onLogin={switchTab} /> :
                 <LoginForm onCreateAccount={switchTab}/>
             }

@@ -27,7 +27,8 @@ let corsOptions: cors.CorsOptions = {
         } else {
             callback(new Error('Not allowed by CORS'));
         }
-    }
+    },
+    methods: "POST,GET,PROPFIND,PUT,PATCH,DELETE",
 }
 app.use(cors(corsOptions));
 app.use(cookieParser());

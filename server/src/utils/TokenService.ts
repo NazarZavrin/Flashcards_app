@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import express from 'express';
 import BadRequestError from '../errors/BadRequestError';
-import { Tokens } from '../models/TokensModel';
+import { ITokens, Tokens } from '../models/TokensModel';
 import { ClientSession } from 'mongoose';
 
 class TokenService {
@@ -40,9 +40,11 @@ class TokenService {
     }
     async saveRefreshTokenToDb(userId: any, refreshToken: string, session?: ClientSession) {
         await Tokens.deleteMany({});
-        
-        await Tokens.updateOne({ user: userId },
-            { $push: { refreshTokens: refreshToken }, $setOnInsert: { user: userId } },
+        /* updateOne does not run validation, so we have to run 
+        it ourselves, for example with .validate() */
+        await new Tokens<ITokens>({ user_id: userId, refresh_tokens: [refreshToken] }).validate();
+        await Tokens.updateOne({ user_id: userId },
+            { $push: { refresh_tokens: refreshToken }, $setOnInsert: { user_id: userId } },
             { upsert: true, session: session });
     }
     saveRefreshTokenToCookies(res: express.Response, refreshToken: string) {

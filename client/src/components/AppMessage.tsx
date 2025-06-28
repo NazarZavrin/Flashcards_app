@@ -22,7 +22,7 @@ function AppMessage(props: Props) {
     const dispatch = useAppDispatch();
     const mustBeDisplayed = useAppSelector(state => state.app.mustBeDisplayed);
     const timerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    let generalStyles = 'fixed left-0 bottom-0 transition-all duration-[2s] p-1.5 mb-1 rounded-[0.5em] border-2 border-solid border-gray-600 bg-white inline-flex flex-row items-center items-end ';
+    let generalStyles = 'fixed left-0 bottom-0 transition-all duration-[2s] p-1.5 mb-1 rounded-[0.5em] border-2 border-solid border-gray-600 bg-white inline-flex flex-row items-center ';
     generalStyles += !mustBeDisplayed ? '-translate-x-full ease-in' : 'ml-1 ease-out';
     function scheduleHiding() {
         if (mustBeDisplayed) {
