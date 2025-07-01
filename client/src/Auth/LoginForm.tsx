@@ -18,7 +18,7 @@ function LoginForm({ onCreateAccount, ...props }: Props) {
     const isLoading = useAppSelector(state => state.user.isLoading);
     // console.log(isLoading);
     const [userDataForLogin, setUserDataForLogin] = useState<UserDataForLogin>({
-        email: '', password: ''
+        email: 'ann@gmail.com', password: 'annp'
     })
     const [errors, setErrors] = useState({
         email: '', password: ''

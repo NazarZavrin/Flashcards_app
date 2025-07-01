@@ -1,33 +1,42 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
 
 export type MessageInfo = {
     text: string,
     type?: 'success' | 'error' | 'warning' | 'info',
     displayDuration?: number,
-    // mustBeDisplayed: boolean
-}
-export const defaultDisplayDuration: number = 3000;
-
-const initialState: MessageInfo & { mustBeDisplayed: boolean } = {
-    text: '',
-    mustBeDisplayed: false
 }
 
+export const defaultDisplayDuration: number = 2500;
+
+const initialState: { messages: MessageInfo[], messageMustBeDisplayed: boolean } = {
+    messages: [],
+    messageMustBeDisplayed: false
+}
 
 const appSlice = createSlice({
     name: 'app',
     initialState,
     reducers: {
         showMessage: (state, action: { payload: MessageInfo }) => {
-            state = { ...action.payload, mustBeDisplayed: true };
-            return state;
+            state.messages.push(action.payload);
+            if (state.messages.length === 1) {
+                state.messageMustBeDisplayed = true;
+            }
         },
-        hideMessage: (state) => {
-            state.mustBeDisplayed = false;
+        setMessageMustBeDisplayed: (state, action: {payload: boolean}) => {
+            state.messageMustBeDisplayed = action.payload;
         },
+        showNextMessage: (state) => {
+            if (state.messages.length > 0) {
+                state.messages.shift();
+            }
+            if (state.messages.length > 0) {
+                state.messageMustBeDisplayed = true;
+            }
+        }
     },
 })
 
-export const { showMessage, hideMessage } = appSlice.actions;
+export const { showMessage, setMessageMustBeDisplayed, showNextMessage } = appSlice.actions;
 
 export default appSlice.reducer;

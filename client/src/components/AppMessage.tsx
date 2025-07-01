@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../store';
-import { defaultDisplayDuration, hideMessage, MessageInfo, showMessage } from '../App/appSlice';
+import { MessageInfo, defaultDisplayDuration, setMessageMustBeDisplayed, showNextMessage } from '../App/appSlice';
 import { ReactComponent as Success } from '../assets/success-circle.svg';
 import { ReactComponent as Info } from '../assets/info-circle.svg';
 import { ReactComponent as Warning } from '../assets/warning-triangle.svg';
@@ -20,32 +20,32 @@ const icons: Record<NonNullable<MessageInfo['type']>, React.ReactNode> = {
 
 function AppMessage(props: Props) {
     const dispatch = useAppDispatch();
-    const mustBeDisplayed = useAppSelector(state => state.app.mustBeDisplayed);
+    const mustBeDisplayed = useAppSelector(state => state.app.messageMustBeDisplayed);
     const timerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     let generalStyles = 'fixed left-0 bottom-0 transition-all duration-[2s] p-1.5 mb-1 rounded-[0.5em] border-2 border-solid border-gray-600 bg-white inline-flex flex-row items-center ';
     generalStyles += !mustBeDisplayed ? '-translate-x-full ease-in' : 'ml-1 ease-out';
-    function scheduleHiding() {
-        if (mustBeDisplayed) {
-            /* if the transition ended while the message is marked as the one that 
-            must be displayed, then we have to schedule its hiding */
-            if (timerIdRef.current) {
-                clearTimeout(timerIdRef.current);
-            }
-            // console.log(new Date().toLocaleTimeString());
-            timerIdRef.current = setTimeout(() => {
-                dispatch(hideMessage());
-                // console.log(new Date().toLocaleTimeString());
-            }, props.displayDuration ?? defaultDisplayDuration);
+    function scheduleHiding(event: React.TransitionEvent<HTMLDivElement> | React.MouseEvent<HTMLDivElement>) {
+        const nativeEvent: MouseEvent | TransitionEvent = event.nativeEvent;
+        if (nativeEvent instanceof TransitionEvent && nativeEvent.propertyName !== 'transform') {
+            return;
         }
+        if (timerIdRef.current) {
+            clearTimeout(timerIdRef.current);
+        }
+        // console.log(new Date().toLocaleTimeString());
+        timerIdRef.current = setTimeout(() => {
+            dispatch(setMessageMustBeDisplayed(false));
+            // console.log(new Date().toLocaleTimeString());
+        }, props.displayDuration ?? defaultDisplayDuration);
     }
     return (
         <div className={generalStyles}
-            onTransitionEnd={event => event.propertyName === 'transform' ? scheduleHiding() : 0}
-            onClick={() => mustBeDisplayed ? scheduleHiding() : dispatch(showMessage({...props, text: props.children}))}>
+            onTransitionEnd={event => mustBeDisplayed ? scheduleHiding(event) : dispatch(showNextMessage())}
+            onClick={event => mustBeDisplayed ? scheduleHiding(event) : dispatch(setMessageMustBeDisplayed(true))}>
             {icons[props.type ?? 'success']}
             <span className='leading-none'>{props.children}</span>
-            <CloseCircle className='h-[1em] ml-1' fill='slategray' 
-                onClick={() => dispatch(hideMessage())} />
+            <CloseCircle className='h-[1em] ml-1' fill='slategray'
+                onClick={() => dispatch(setMessageMustBeDisplayed(false))} />
         </div>
     );
 }

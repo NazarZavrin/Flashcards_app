@@ -5,9 +5,9 @@ import AuthForm from '../Auth/AuthForm';
 import AppMessage from '../components/AppMessage';
 
 function App() {
-  const messageText = useAppSelector(state => state.app.text);
-  const messageType = useAppSelector(state => state.app.type);
-  const messageDisplayDuration = useAppSelector(state => state.app.displayDuration);
+  const messageText = useAppSelector(state => state.app.messages[0]?.text);
+  const messageType = useAppSelector(state => state.app.messages[0]?.type);
+  const messageDisplayDuration = useAppSelector(state => state.app.messages[0]?.displayDuration);
   return (
     <BrowserRouter>
       <Routes>
