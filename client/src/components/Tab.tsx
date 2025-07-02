@@ -7,7 +7,7 @@ interface Props extends ComponentProps<"div"> {
 function Tab({ children, active: tabIsActive, ...props }: Props) {
     const activeTabStyle = tabIsActive ? 'text-blue-500 bg-white border border-solid border-gray-500 ' : 'text-gray-500 ';
     return (
-        <div {...props} className={"py-1 px-3 m-0 rounded whitespace-nowrap " + activeTabStyle + props.className}>
+        <div {...props} className={"py-1 px-2 m-0 rounded whitespace-nowrap " + activeTabStyle + props.className}>
             {children}
         </div>
     );

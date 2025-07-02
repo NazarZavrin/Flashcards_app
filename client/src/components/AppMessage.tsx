@@ -22,7 +22,7 @@ function AppMessage(props: Props) {
     const dispatch = useAppDispatch();
     const mustBeDisplayed = useAppSelector(state => state.app.messageMustBeDisplayed);
     const timerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    let generalStyles = 'fixed left-0 bottom-0 transition-all duration-[2s] p-1.5 mb-1 rounded-[0.5em] border-2 border-solid border-gray-600 bg-white inline-flex flex-row items-center ';
+    let generalStyles = 'fixed left-0 bottom-0 transition-all duration-[2s] p-1 mb-1 rounded-[0.5em] border-2 border-solid border-gray-600 bg-white inline-flex flex-row items-center ';
     generalStyles += !mustBeDisplayed ? '-translate-x-full ease-in' : 'ml-1 ease-out';
     function scheduleHiding(event: React.TransitionEvent<HTMLDivElement> | React.MouseEvent<HTMLDivElement>) {
         const nativeEvent: MouseEvent | TransitionEvent = event.nativeEvent;
@@ -31,12 +31,20 @@ function AppMessage(props: Props) {
         }
         if (timerIdRef.current) {
             clearTimeout(timerIdRef.current);
+        } else if (event.type === 'click') {
+            // if timerId is not set yet, then only transitionEnd for transform can set it
+            return;
         }
         // console.log(new Date().toLocaleTimeString());
         timerIdRef.current = setTimeout(() => {
             dispatch(setMessageMustBeDisplayed(false));
+            timerIdRef.current = null;
             // console.log(new Date().toLocaleTimeString());
         }, props.displayDuration ?? defaultDisplayDuration);
+    }
+    function hideMessage(event: React.MouseEvent<SVGElement>) {
+        event.stopPropagation();// click on parent div must not fire
+        dispatch(setMessageMustBeDisplayed(false))
     }
     return (
         <div className={generalStyles}
@@ -45,7 +53,7 @@ function AppMessage(props: Props) {
             {icons[props.type ?? 'success']}
             <span className='leading-none'>{props.children}</span>
             <CloseCircle className='h-[1em] ml-1' fill='slategray'
-                onClick={() => dispatch(setMessageMustBeDisplayed(false))} />
+                onClick={event => hideMessage(event)} />
         </div>
     );
 }

@@ -16,7 +16,7 @@ interface Props extends ComponentProps<'form'> {
 function LoginForm({ onCreateAccount, ...props }: Props) {
     const dispatch = useAppDispatch();
     const isLoading = useAppSelector(state => state.user.isLoading);
-    // console.log(isLoading);
+    const loader = <ButtonLoader />;
     const [userDataForLogin, setUserDataForLogin] = useState<UserDataForLogin>({
         email: 'ann@gmail.com', password: 'annp'
     })
@@ -29,7 +29,6 @@ function LoginForm({ onCreateAccount, ...props }: Props) {
         errors.password = userDataForLogin.password.length <= 0 ? 'Enter password.' : '';
         setErrors({ ...errors });
         if (Object.values(errors).some(value => value.length > 0)) {
-            // dispatch(showMessage({ type: 'warning', text: 'Failed to log in' }));
             return;
         }
         const dispatchResult = await dispatch(logIn(userDataForLogin));
@@ -59,8 +58,8 @@ function LoginForm({ onCreateAccount, ...props }: Props) {
             <div className='mt-1'>Password:</div>
             <PasswordInput className='mt-1' value={userDataForLogin.password} name='password' onChange={event => setUserDataForLogin({ ...userDataForLogin, password: event.target.value })}
                 displayAfterInput={<Error>{errors.password}</Error>} />
-            <Button className='bg-blue-500 mt-2 w-[100%]' onClick={handleSubmit}>{!isLoading ? "Login" : <ButtonLoader />}</Button>
-            <div className='text-[16px] mt-0.5'>Don't have an account? <span onClick={onCreateAccount}
+            <Button className='bg-blue-500 mt-1 w-[100%]' onClick={handleSubmit}>{!isLoading ? "Login" : loader}</Button>
+            <div className='text-[0.75em] mt-0.5'>Don't have an account? <span onClick={onCreateAccount}
                 className='text-blue-700 font-bold underline cursor-pointer whitespace-nowrap'>Create it</span>.</div>
         </form>
     );
