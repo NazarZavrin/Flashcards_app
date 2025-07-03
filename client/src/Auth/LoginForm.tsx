@@ -1,13 +1,14 @@
 import React, { ComponentProps, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store';
-import { logIn, UserDataForLogin } from './userSlice';
 import Input from '../components/Input';
 import PasswordInput from '../components/PasswordInput';
-import Error from '../components/Error';
+import InputError from '../components/InputError';
 import Button from '../components/Button';
 import Validator from '../utils/Validator';
-import { showMessage } from '../App/appSlice';
+import { showMessage } from '../App/messageSlice';
 import ButtonLoader from '../components/ButtonLoader';
+import { UserDataForLogin, logIn, setLoginFormInputs } from './loginFormSlice';
+import { setUserData } from './userSlice';
 
 interface Props extends ComponentProps<'form'> {
     onCreateAccount: React.MouseEventHandler<HTMLSpanElement>;
@@ -15,49 +16,52 @@ interface Props extends ComponentProps<'form'> {
 
 function LoginForm({ onCreateAccount, ...props }: Props) {
     const dispatch = useAppDispatch();
-    const isLoading = useAppSelector(state => state.user.isLoading);
+    const isLoading = useAppSelector(state => state.loginForm.isLoading);
     const loader = <ButtonLoader />;
-    const [userDataForLogin, setUserDataForLogin] = useState<UserDataForLogin>({
-        email: 'ann@gmail.com', password: 'annp'
-    })
-    const [errors, setErrors] = useState({
+    const loginFormInputs = useAppSelector(state => state.loginForm.inputs);
+    const [errors, setErrors] = useState<UserDataForLogin>({
         email: '', password: ''
     })
     async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
         event.preventDefault(); // prevent form submission
-        errors.email = Validator.validateEmail(userDataForLogin.email);
-        errors.password = userDataForLogin.password.length <= 0 ? 'Enter password.' : '';
+        errors.email = Validator.validateEmail(loginFormInputs.email);
+        errors.password = loginFormInputs.password.length <= 0 ? 'Enter password' : '';
         setErrors({ ...errors });
         if (Object.values(errors).some(value => value.length > 0)) {
             return;
         }
-        const dispatchResult = await dispatch(logIn(userDataForLogin));
-        if (logIn.rejected.match(dispatchResult)) {
-            dispatch(showMessage({ type: "error", text: 'Application error' }));
-            console.error('logIn.rejected');
-            console.error(dispatchResult.error);
-        } else if (dispatchResult.payload.ok === false) {
-            const errorMessage = dispatchResult.payload.result.message;
-            if (errorMessage.includes('does not exist')
-                || errorMessage.includes('Wrong password')) {
-                dispatch(showMessage({ type: "error", text: errorMessage }));
+        try {
+            const response = await dispatch(logIn(loginFormInputs)).unwrap();
+            const result = response.result;
+            if (response.ok) {
+                dispatch(setUserData(result.userData));
+                localStorage.setItem('accessToken', result.accessToken);
+                dispatch(showMessage({ text: 'Login successful' }));
             } else {
-                dispatch(showMessage({ type: "error", text: 'Server error' }));
-                console.error('serverResponse.ok is false');
-                console.error(errorMessage);
+                const errorMessage = result.message;
+                if (errorMessage.includes('does not exist')
+                    || errorMessage.includes('Wrong password')) {
+                    dispatch(showMessage({ type: "error", text: errorMessage }));
+                } else {
+                    dispatch(showMessage({ type: "error", text: 'Server error' }));
+                    console.error('serverResponse.ok is false');
+                    console.error(errorMessage);
+                }
             }
-        } else {
-            dispatch(showMessage({ text: 'Login successful' }));
+        } catch (error: unknown) {
+            dispatch(showMessage({ type: "error", text: 'Application error' }));
+            console.error('logIn rejected');
+            console.error(error);
         }
     }
     return (
         <form {...props} className={'flex flex-col justify-center items-center ' + props.className}>
             <div className='mt-1'>Email:</div>
-            <Input className='mt-1' value={userDataForLogin.email} name='email' autoComplete='email' onChange={event => setUserDataForLogin({ ...userDataForLogin, email: event.target.value })} />
-            <Error>{errors.email}</Error>
+            <Input className='mt-1' value={loginFormInputs.email} name='email' autoComplete='email' onChange={event => dispatch(setLoginFormInputs({ ...loginFormInputs, email: event.target.value }))} />
+            <InputError>{errors.email}</InputError>
             <div className='mt-1'>Password:</div>
-            <PasswordInput className='mt-1' value={userDataForLogin.password} name='password' onChange={event => setUserDataForLogin({ ...userDataForLogin, password: event.target.value })}
-                displayAfterInput={<Error>{errors.password}</Error>} />
+            <PasswordInput className='mt-1' value={loginFormInputs.password} name='password' onChange={event => dispatch(setLoginFormInputs({ ...loginFormInputs, password: event.target.value }))}
+                displayAfterInput={<InputError>{errors.password}</InputError>} />
             <Button className='bg-blue-500 mt-1 w-[100%]' onClick={handleSubmit}>{!isLoading ? "Login" : loader}</Button>
             <div className='text-[0.75em] mt-0.5'>Don't have an account? <span onClick={onCreateAccount}
                 className='text-blue-700 font-bold underline cursor-pointer whitespace-nowrap'>Create it</span>.</div>
