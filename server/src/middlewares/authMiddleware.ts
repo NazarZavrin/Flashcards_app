@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthorizationError } from '../errors/AuthorizationError';
+import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { tokenService } from '../utils/TokenService';
+import BadRequestError from '../errors/BadRequestError';
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const unauthorizedError = new AuthorizationError("User is not authorized");
+    const unauthorizedError = new UnauthorizedError();
     try {
         const authorizationHeader = req.headers.authorization;
         if (!authorizationHeader) {
@@ -20,6 +21,9 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         req.user = userData;
         next();
     } catch (error) {
+        if (error instanceof BadRequestError) { // validateAccessToken throws BadRequestError
+            return next(error);
+        }
         return next(unauthorizedError);
     }
 }

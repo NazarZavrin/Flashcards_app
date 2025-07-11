@@ -1,5 +1,5 @@
 import React, { ComponentProps, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../store';
+import { useAppDispatch } from '../store';
 import Input from '../components/Input';
 import PasswordInput from '../components/PasswordInput';
 import InputError from '../components/InputError';
@@ -7,18 +7,19 @@ import Button from '../components/Button';
 import Validator from '../utils/Validator';
 import { showMessage } from '../App/messageSlice';
 import ButtonLoader from '../components/ButtonLoader';
-import { IUserData, createAccount, setCreateAccountFormInputs } from './createAccountFormSlice';
-import { setUserData } from './userSlice';
+import { createAccount, setIsAuthenticated, setUserData } from './userSlice';
+import { IUserData } from './AuthForm';
 
 interface Props extends ComponentProps<'form'> {
+    createAccountFormInputs: IUserData;
+    setCreateAccountFormInputs: React.Dispatch<React.SetStateAction<IUserData>>;
     onLogin: React.MouseEventHandler<HTMLSpanElement>;
 }
 
-function CreateAccountForm({ onLogin, ...props }: Props) {
+function CreateAccountForm({ createAccountFormInputs, setCreateAccountFormInputs, onLogin, ...props }: Props) {
     const dispatch = useAppDispatch();
-    const isLoading = useAppSelector(state => state.createAccountForm.isLoading);
-    const loader = <ButtonLoader />;
-    const createAccountFormInputs = useAppSelector(state => state.createAccountForm.inputs);
+    const [isLoading, setIsLoading] = useState(false);
+    const loader = <ButtonLoader className='max-h-[1em]' />;
     const [errors, setErrors] = useState<IUserData>({
         name: '', email: '', password: ''
     })
@@ -32,12 +33,14 @@ function CreateAccountForm({ onLogin, ...props }: Props) {
             return;
         }
         try {
+            setIsLoading(true);
             const response = await dispatch(createAccount(createAccountFormInputs)).unwrap();
             const result = response.result;
             if (response.ok) {
+                dispatch(showMessage({ text: 'Account created' }));
+                dispatch(setIsAuthenticated(true));
                 dispatch(setUserData(result.userData));
                 localStorage.setItem('accessToken', result.accessToken);
-                dispatch(showMessage({ text: 'Account created' }));
             } else {
                 const errorMessage = result.message;
                 if (errorMessage.includes('email already exists')) {
@@ -48,8 +51,10 @@ function CreateAccountForm({ onLogin, ...props }: Props) {
                     console.error(errorMessage);
                 }
             }
+            setIsLoading(false);
         } catch (error: unknown) {
             dispatch(showMessage({ type: "error", text: 'Application error' }));
+            setIsLoading(false);
             console.error('createAccount rejected');
             console.error(error);
         }
@@ -57,13 +62,13 @@ function CreateAccountForm({ onLogin, ...props }: Props) {
     return (
         <form {...props} className={'flex flex-col justify-center items-center ' + props.className}>
             <div className='mt-1'>Enter your name:</div>
-            <Input className='mt-1' value={createAccountFormInputs.name} name='name' autoComplete='name' onChange={event => dispatch(setCreateAccountFormInputs({ ...createAccountFormInputs, name: event.target.value }))} />
+            <Input className='mt-1' value={createAccountFormInputs.name} name='name' autoComplete='name' onChange={event => setCreateAccountFormInputs({ ...createAccountFormInputs, name: event.target.value })} />
             <InputError>{errors.name}</InputError>
             <div className='mt-1'>Enter your email:</div>
-            <Input className='mt-1' value={createAccountFormInputs.email} name='email' autoComplete='email' onChange={event => dispatch(setCreateAccountFormInputs({ ...createAccountFormInputs, email: event.target.value }))} />
+            <Input className='mt-1' value={createAccountFormInputs.email} name='email' autoComplete='email' onChange={event => setCreateAccountFormInputs({ ...createAccountFormInputs, email: event.target.value })} />
             <InputError>{errors.email}</InputError>
             <div className='mt-1'>Enter your password:</div>
-            <PasswordInput className='mt-1' value={createAccountFormInputs.password} name='password' onChange={event => dispatch(setCreateAccountFormInputs({ ...createAccountFormInputs, password: event.target.value }))}
+            <PasswordInput className='mt-1' value={createAccountFormInputs.password} name='password' onChange={event => setCreateAccountFormInputs({ ...createAccountFormInputs, password: event.target.value })}
                 displayAfterInput={<InputError>{errors.password}</InputError>} />
             <Button className='mt-1 w-[100%]' onClick={handleSubmit}>{!isLoading ? "Create account" : loader}</Button>
             <div className='text-[0.75em] mt-0.5'>Already have an account? <span onClick={onLogin}
