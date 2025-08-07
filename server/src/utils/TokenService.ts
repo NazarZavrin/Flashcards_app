@@ -22,7 +22,7 @@ class TokenService {
             // jwt.verify(...) as UserDto & jwt.JwtPayload? https://stackoverflow.com/questions/68024844/how-can-get-the-property-from-result-of-jwt-verify-method-that-was-already-cre
             const userData = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
             if (!isUserDto(userData)) {
-                throw new BadRequestError('userData in accessToken is not a valid UserDto');// make it be logged
+                throw new BadRequestError('userData in accessToken is not a valid UserDto', { logging: true });
             }
             return userData;
         } catch (error) {
@@ -35,29 +35,56 @@ class TokenService {
         }
     }
     validateRefreshToken(refreshToken: string) {
+        // may throw BadRequestError
         try {
             const userData = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-            if (!isUserDto(userData)) {
-                throw new BadRequestError('userData in accessToken is not a valid UserDto');// make it be logged
+            if (!isUserDto(userData)) { // check logging: true
+                throw new BadRequestError('userData in refreshToken is not a valid UserDto', { logging: true });
             }
             return userData;
         } catch (error) {
             if (error instanceof BadRequestError) {
                 throw error;
-            } else {
+            } else if (error instanceof jwt.TokenExpiredError === false) {
                 console.log('validateRefreshToken error ', error);
             }
             return null;
         }
     }
     async saveRefreshTokenToDb(userId: any, refreshToken: string, session?: ClientSession) {
-        await Tokens.deleteMany({}, { session });
         /* updateOne does not run validation, so we have to run 
         it ourselves, for example with .validate() */
         await new Tokens<ITokens>({ user_id: userId, refresh_tokens: [refreshToken] }).validate();
-        await Tokens.updateOne({ user_id: userId },
+        const userDoc = await Tokens.findOneAndUpdate({ user_id: userId },
             { $push: { refresh_tokens: refreshToken }, $setOnInsert: { user_id: userId } },
-            { upsert: true, session: session });
+            { upsert: true, returnDocument: 'after', session: session }).lean();
+        // asyncronous call below
+        this.removeInvalidRefreshTokensFromDb(userId, userDoc?.refresh_tokens);
+    }
+    async removeInvalidRefreshTokensFromDb(userId: any, refreshTokens: string[]) {
+        // without ClientSession - independent db requests
+        if (typeof refreshTokens === 'undefined' || !Array.isArray(refreshTokens)) {
+            const userDoc = await Tokens.findOne({ user_id: userId });
+            if (userDoc instanceof Object && 'refresh_tokens' in userDoc) {
+                refreshTokens = userDoc.refresh_tokens;
+            }
+        }
+        const refreshTokensNumber = refreshTokens.length;
+        refreshTokens = refreshTokens.filter((refreshToken, index) => {
+            try {
+                return this.validateRefreshToken(refreshToken) === null ? false : true;
+            } catch (error) {
+                console.log(new Date().toISOString(), error instanceof Error ? error.message : error, `userId: ${userId}, refreshTokenIndex: ${index}`);
+                return true; // keep invalid refreshToken in db to figure out why it is invalid
+            }
+        });
+        if (refreshTokens.length === 0) {
+            console.log(new Date().toISOString(), `All refresh tokens were found invalid, userId: ${userId}`);
+            return;
+        } else if (refreshTokens.length === refreshTokensNumber) {
+            return;
+        }
+        await Tokens.updateOne({ user_id: userId }, { $set: { refresh_tokens: refreshTokens } });
     }
     async findRefreshTokenInDb(refreshToken: string, session?: ClientSession) {
         const tokenData = await Tokens.findOne({ refresh_tokens: refreshToken }).session(session || null);

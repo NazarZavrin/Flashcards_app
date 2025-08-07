@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 export interface ITokens {
     user_id: mongoose.Types.ObjectId;
-    refresh_tokens: [string];
+    refresh_tokens: string[];
 }
 
 const tokensSchema = new mongoose.Schema<ITokens>({
