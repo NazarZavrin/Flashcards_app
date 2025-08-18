@@ -6,6 +6,8 @@ declare global {
             JWT_ACCESS_SECRET: string;
             JWT_REFRESH_SECRET: string;
             SALT_ROUNDS: string;
+            CRYPTO_KEY: string;
+            ENCRYPTION_ALGORITHM: string;
             DB_USER: string;
             DB_PASSWORD: string;
             DB_NAME: string;

@@ -7,6 +7,7 @@ import BadRequestError from '../errors/BadRequestError';
 import { statusCodes } from '../utils/statusCodes';
 import Validator from '../utils/Validator';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
+import cryptoService from '../utils/CryptoService';
 
 class UserDto implements Omit<IUser, 'password'> {
     id: mongoose.Types.ObjectId;
@@ -89,17 +90,17 @@ class UsersController {
         const session = await mongoose.startSession();
         try {
             const refreshToken = req.cookies.refreshToken;
-            // console.log(refreshToken);
             if (!refreshToken) {
-                // console.log(req.originalUrl + ' !refreshToken');
                 throw new UnauthorizedError();
             }
             const userDataFromToken = tokenService.validateRefreshToken(refreshToken);
             const transactionResults = await session.withTransaction(async () => {
-                const refreshTokenFromDb = await tokenService.findRefreshTokenInDb(refreshToken, session);
-                if (!userDataFromToken || !refreshTokenFromDb) {
-                    // console.log('!userDataFromToken || !refreshTokenFromDb', userDataFromToken, refreshTokenFromDb);
+                const userTokens = await tokenService.findRefreshTokenInDb(refreshToken, session);
+                if (!userDataFromToken || !userTokens) {
                     throw new UnauthorizedError();
+                }
+                if (userTokens.user_id.toString() !== userDataFromToken.id.toString()) {
+                    throw new BadRequestError(`refreshToken "${refreshToken}" in db has user_id "${userTokens.user_id.toString()}" but id in his data is "${userDataFromToken.id.toString()}"`, { logging: true });
                 }
                 const user = await User.findById(userDataFromToken.id).session(session);
                 if (!user) {
