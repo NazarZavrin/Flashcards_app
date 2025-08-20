@@ -60,7 +60,7 @@ function CreateAccountForm({ createAccountFormInputs, setCreateAccountFormInputs
         }
     }
     return (
-        <form {...props} className={'flex flex-col justify-center items-center ' + props.className}>
+        <form {...props} className={'flex flex-col justify-center items-center ' + (props.className || '')}>
             <div className='mt-1'>Enter your name:</div>
             <Input className='mt-1' value={createAccountFormInputs.name} name='name' autoComplete='name' onChange={event => setCreateAccountFormInputs({ ...createAccountFormInputs, name: event.target.value })} />
             <InputError>{errors.name}</InputError>

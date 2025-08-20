@@ -5,11 +5,10 @@ import { statusCodes } from '../utils/statusCodes';
 export const errorHandler = (error: Error, req: Request, res: Response, next: NextFunction) => {
     if (error instanceof CustomError) {
         if (error.logging) {
-            console.error(req.originalUrl + ': ' + error.stack);
+            console.error(req.originalUrl + ': ' + error.stack + '\n-------');
         }
         return res.status(error.statusCode).json({ message: error.message });
     }
-    console.error(req.originalUrl + ': ' + error.stack);
-    // console.log(error.stack);
+    console.error(req.originalUrl + ': ' + error.stack + '\n-------');
     return res.status(statusCodes.InternalServerError).json({ message: error.message });
 }

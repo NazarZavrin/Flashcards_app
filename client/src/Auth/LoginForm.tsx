@@ -60,7 +60,7 @@ function LoginForm({ loginFormInputs, setLoginFormInputs, onCreateAccount, ...pr
         }
     }
     return (
-        <form {...props} className={'flex flex-col justify-center items-center ' + props.className}>
+        <form {...props} className={'flex flex-col justify-center items-center ' + (props.className || '')}>
             <div className='mt-1'>Email:</div>
             <Input className='mt-1' value={loginFormInputs.email} name='email' autoComplete='email' onChange={event => setLoginFormInputs({ ...loginFormInputs, email: event.target.value })} />
             <InputError>{errors.email}</InputError>

@@ -18,20 +18,22 @@ function AuthForm(props: ComponentProps<'section'>) {
     const [createAccountFormInputs, setCreateAccountFormInputs] = useState<IUserData>({ name: 'Ann', email: 'ann@gmail.com', password: 'annp' });
     const switchTab = () => setActiveTab(activeTab === 'log-in' ? 'create-account' : 'log-in');
     return (
-        <section {...props} className={styles.authForm + ' ' + props.className}>
-            <Tabs>
-                <Tab active={activeTab !== 'create-account'}
-                    onClick={switchTab}
-                >Log in</Tab>
-                <Tab active={activeTab === 'create-account'}
-                    onClick={switchTab}
-                >Create account</Tab>
-            </Tabs>
-            {activeTab === 'create-account' ?
-                <CreateAccountForm createAccountFormInputs={createAccountFormInputs} setCreateAccountFormInputs={setCreateAccountFormInputs} onLogin={switchTab} /> :
-                <LoginForm loginFormInputs={loginFormInputs} setLoginFormInputs={setLoginFormInputs} onCreateAccount={switchTab} />
-            }
-        </section>
+        <div className={styles.wrapper}>
+            <section {...props} className={styles.authForm + ' ' + (props.className || '')}>
+                <Tabs>
+                    <Tab active={activeTab !== 'create-account'}
+                        onClick={switchTab}
+                    >Log in</Tab>
+                    <Tab active={activeTab === 'create-account'}
+                        onClick={switchTab}
+                    >Create account</Tab>
+                </Tabs>
+                {activeTab === 'create-account' ?
+                    <CreateAccountForm createAccountFormInputs={createAccountFormInputs} setCreateAccountFormInputs={setCreateAccountFormInputs} onLogin={switchTab} /> :
+                    <LoginForm loginFormInputs={loginFormInputs} setLoginFormInputs={setLoginFormInputs} onCreateAccount={switchTab} />
+                }
+            </section>
+        </div>
     );
 }
 

@@ -13,4 +13,7 @@ export default class Validator {
         }
         return warningText;
     }
+    static reqBodyHasProperties(reqBody: any, ...properties: string[]) {
+        return typeof reqBody === 'object' && properties.every(property => property in reqBody) ? '' : `req.body must contain ${properties.join(', ')} properties`;
+    }
 }

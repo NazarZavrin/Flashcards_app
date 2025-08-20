@@ -7,16 +7,14 @@ import BadRequestError from '../errors/BadRequestError';
 import { statusCodes } from '../utils/statusCodes';
 import Validator from '../utils/Validator';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
-import cryptoService from '../utils/CryptoService';
 
 class UserDto implements Omit<IUser, 'password'> {
     id: mongoose.Types.ObjectId;
     name: string;
     email: string;
     constructor(object: { _id: mongoose.Types.ObjectId, name: string, email: string }) {
-        /*if (!object.name || !object.email) {
-            throw new BadRequestError('UserDto constructor requires name and email properties');
-        }*/
+        // we don't need to check if object has _id, name and email properties, 
+        // TypeScript will do it for us when we use UserDto constructor in the code
         this.id = object._id;
         this.name = object.name;
         this.email = object.email;
@@ -31,6 +29,10 @@ class UsersController {
     async createAccount(req: Request, res: Response, next: NextFunction) {
         const session = await mongoose.startSession();
         try {
+            const bodyContentError = Validator.reqBodyHasProperties(req.body, 'name', 'email', 'password');
+            if (bodyContentError.length > 0) {
+                throw new BadRequestError(bodyContentError, { logging: true });
+            }
             const { name, email, password }:
                 { name: string, email: string, password: string } = req.body;
             const errorMessage = password ? Validator.validatePassword(password) : 'req.password contains falsy value';
@@ -38,8 +40,6 @@ class UsersController {
                 throw new BadRequestError(errorMessage);
             }
             const transactionResults = await session.withTransaction(async () => {
-                // await User.deleteMany({}, { session });
-
                 let user = await User.findOne({ email }).session(session);
                 if (user) {
                     throw new BadRequestError('User with such email already exists');
@@ -62,6 +62,10 @@ class UsersController {
     async login(req: Request, res: Response, next: NextFunction) {
         const session = await mongoose.startSession();
         try {
+            const bodyContentError = Validator.reqBodyHasProperties(req.body, 'email', 'password');
+            if (bodyContentError.length > 0) {
+                throw new BadRequestError(bodyContentError, { logging: true });
+            }
             const { email, password }:
                 { email: string, password: string } = req.body;
             const transactionResults = await session.withTransaction(async () => {

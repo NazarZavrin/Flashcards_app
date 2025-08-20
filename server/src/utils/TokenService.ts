@@ -18,7 +18,6 @@ class TokenService {
         const encryptedPayload = cryptoService.encrypt(JSON.stringify(payload));
         const accessToken = jwt.sign({ [this.encryptedDataFieldName]: encryptedPayload }, process.env.JWT_ACCESS_SECRET, { expiresIn: this.accessTokenMaxAge });
         const refreshToken = jwt.sign({ ...payload }, process.env.JWT_REFRESH_SECRET, { expiresIn: this.refreshTokenMaxAge });
-        console.log('refreshToken generated');
         return { accessToken, refreshToken };
     }
     validateAccessToken(accessToken: string) {
@@ -49,7 +48,6 @@ class TokenService {
             if (!isUserDto(userData)) { // check logging: true
                 throw new BadRequestError('userData in refreshToken is not a valid UserDto', { logging: true });
             }
-            console.log('refreshToken validated');
             return userData;
         } catch (error) {
             if (error instanceof BadRequestError) {
